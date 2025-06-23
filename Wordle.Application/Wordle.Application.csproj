@@ -7,14 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Guess\" />
-    <Folder Include="DailyWord\" />
-    <Folder Include="Score\" />
+    <Folder Include="Guesses\" />
+    <Folder Include="DailyWords\" />
+    <Folder Include="Scores\" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="12.0.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.6" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.1" />
   </ItemGroup>
 
   <ItemGroup>

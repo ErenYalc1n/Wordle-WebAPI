@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Wordle.Domain.User;
+using Wordle.Domain.Users;
 
 namespace Wordle.Infrastructure.Data
 {

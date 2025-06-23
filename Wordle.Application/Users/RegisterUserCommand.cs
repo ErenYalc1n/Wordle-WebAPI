@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Wordle.Application.User
+namespace Wordle.Application.Users
 {
     public record RegisterUserCommand(
         string Email,

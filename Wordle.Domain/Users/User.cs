@@ -1,4 +1,4 @@
-﻿namespace Wordle.Domain.User
+﻿namespace Wordle.Domain.Users
 {
     public sealed class User
     {
@@ -11,5 +11,8 @@
         public Role Role { get; set; } = Role.Player;
         public bool IsEmailConfirmed { get; set; }
         public bool IsKvkkAccepted { get; set; }
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiresAt { get; set; }
+
     }
 }

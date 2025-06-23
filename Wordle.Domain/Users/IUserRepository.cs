@@ -1,4 +1,4 @@
-﻿namespace Wordle.Domain.User
+﻿namespace Wordle.Domain.Users
 {
     public interface IUserRepository
     {
@@ -10,5 +10,11 @@
         Task<bool> IsReminderEmailAllowedAsync(Guid userId);       
         Task<bool> IsEmailConfirmedAsync(string email);
         Task<User?> AuthenticateAsync(string email, string passwordHash);
+        Task<User?> GetByNicknameAsync(string nickname);
+        Task UpdateAsync(User user);
+        Task<User?> GetByIdentifierAsync(string identifier);
+        Task<User?> GetByRefreshTokenAsync(string refreshToken);
+        Task DeleteAsync(User user);
+
     }
 }

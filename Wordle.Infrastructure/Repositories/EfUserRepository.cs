@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Wordle.Domain.User;
+using Wordle.Domain.Users;
 using Wordle.Infrastructure.Data;
 
 namespace Wordle.Infrastructure.Repositories
@@ -42,6 +42,30 @@ namespace Wordle.Infrastructure.Repositories
         public async Task<User?> AuthenticateAsync(string email, string passwordHash) =>
             await _context.Users.FirstOrDefaultAsync(x =>
                 x.Email == email && x.PasswordHash == passwordHash);
-    }
 
+        public async Task<User?> GetByNicknameAsync(string nickname)
+        {
+            return await _context.Users.FirstOrDefaultAsync(x => x.Nickname == nickname);
+        }
+        public async Task UpdateAsync(User user)
+        {
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+        }
+        public async Task<User?> GetByIdentifierAsync(string identifier)
+        {
+            return await _context.Users.FirstOrDefaultAsync(x =>
+                x.Email == identifier || x.Nickname == identifier);
+        }
+
+        public async Task<User?> GetByRefreshTokenAsync(string refreshToken) =>
+            await _context.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+
+        public async Task DeleteAsync(User user)
+        {
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+        }
+
+    }
 }

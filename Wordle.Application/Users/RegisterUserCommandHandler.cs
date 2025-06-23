@@ -1,7 +1,7 @@
 ﻿using MediatR;
-using Wordle.Domain.User;
+using Wordle.Domain.Users;
 
-namespace Wordle.Application.User
+namespace Wordle.Application.Users
 {
     public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, Guid>
     {
@@ -20,7 +20,7 @@ namespace Wordle.Application.User
           
             var passwordHash = FakeHash(request.Password);
            
-            var user = new Domain.User.User
+            var user = new Domain.Users.User
             {
                 Id = Guid.NewGuid(),
                 Email = request.Email,
