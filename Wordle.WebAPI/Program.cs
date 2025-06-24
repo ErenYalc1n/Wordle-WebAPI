@@ -1,23 +1,36 @@
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using Wordle.Application.Common.Behaviors;
 using Wordle.Application.Common.Interfaces;
-using Wordle.Application.Users;
+using Wordle.Application.Users.Commands.Register;
 using Wordle.Domain.Users;
 using Wordle.Infrastructure.Auth;
 using Wordle.Infrastructure.CurrentUser;
 using Wordle.Infrastructure.Data;
+using Wordle.Infrastructure.Mail;
 using Wordle.Infrastructure.Repositories;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.Configure<SmtpSettings>(
+    builder.Configuration.GetSection("SmtpSettings"));
+builder.Services.AddScoped<IEMailService, SmtpEmailService>();
+
+
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services.AddMediatR(typeof(RegisterUserCommand).Assembly);
+
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserValidator>();
+
+builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
 
 builder.Services.AddDbContext<WordleDbContext>(options =>
     options.UseSqlServer(
@@ -31,6 +44,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
@@ -40,13 +54,21 @@ builder.Services.AddAuthentication("Bearer")
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero,
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+        Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
         };
+
     });
+
+builder.Configuration
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+    .AddEnvironmentVariables();
 
 builder.Services.AddSwaggerGen(options =>
 {

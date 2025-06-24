@@ -1,17 +1,11 @@
 ﻿using MediatR;
+using Wordle.Application.Users.DTOs;
 
-namespace Wordle.Application.Users.Commands
+namespace Wordle.Application.Users.Commands.Login
 {
     public class LoginUserCommand : IRequest<LoginResultDto>
     {
         public string Identifier { get; set; } = default!;
         public string Password { get; set; } = default!;
     }
-
-    public class LoginResultDto
-    {
-        public string AccessToken { get; set; } = default!;
-        public string RefreshToken { get; set; } = default!;
-    }
-
 }

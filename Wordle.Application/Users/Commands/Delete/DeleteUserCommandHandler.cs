@@ -2,11 +2,7 @@
 using Wordle.Application.Common.Interfaces;
 using Wordle.Domain.Users;
 
-namespace Wordle.Application.Users;
-
-public class DeleteUserCommand : IRequest
-{
-}
+namespace Wordle.Application.Users.Commands.Delete;
 
 public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand>
 {

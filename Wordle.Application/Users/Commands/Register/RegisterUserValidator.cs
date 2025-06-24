@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace Wordle.Application.Users
+namespace Wordle.Application.Users.Commands.Register
 {
     public class RegisterUserValidator : AbstractValidator<RegisterUserCommand>
     {

@@ -1,8 +1,9 @@
 ﻿using MediatR;
 using Wordle.Application.Common.Interfaces;
+using Wordle.Application.Users.DTOs;
 using Wordle.Domain.Users;
 
-namespace Wordle.Application.Users.Commands;
+namespace Wordle.Application.Users.Commands.RefreshToken;
 
 public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, LoginResultDto>
 {
@@ -22,19 +23,17 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, L
         if (user is null || user.RefreshTokenExpiresAt < DateTime.UtcNow)
             throw new Exception("Geçersiz ya da süresi dolmuş refresh token.");
 
-        var accessToken = _tokenService.CreateAccessToken(user);
-        var refreshToken = _tokenService.CreateRefreshToken();
+        var tokens = _tokenService.CreateToken(user);
 
-        user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(21);
+        user.RefreshToken = tokens.RefreshToken;
+        user.RefreshTokenExpiresAt = tokens.RefreshTokenExpiresAt;
 
         await _userRepository.UpdateAsync(user);
 
         return new LoginResultDto
         {
-            AccessToken = accessToken,
-            RefreshToken = refreshToken
+            AccessToken = tokens.AccessToken,
+            RefreshToken = tokens.RefreshToken,
         };
-
     }
 }

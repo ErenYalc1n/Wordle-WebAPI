@@ -1,11 +1,11 @@
-﻿using Wordle.Domain.Users;
+﻿using Wordle.Application.Users.DTOs;
+using Wordle.Domain.Users;
 
 namespace Wordle.Application.Common.Interfaces
 {
     public interface ITokenService
-    {
-        string CreateAccessToken(User user);
-        string CreateRefreshToken();
+    {      
+        TokenResultDto CreateToken(User user);
     }
 
 }

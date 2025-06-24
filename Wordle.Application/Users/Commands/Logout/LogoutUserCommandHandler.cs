@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Wordle.Domain.Users;
 
-namespace Wordle.Application.Users
+namespace Wordle.Application.Users.Commands.Logout
 {
     public class LogoutUserCommandHandler : IRequestHandler<LogoutUserCommand>
     {

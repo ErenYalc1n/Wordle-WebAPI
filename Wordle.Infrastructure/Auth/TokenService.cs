@@ -5,47 +5,60 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Wordle.Application.Common.Interfaces;
+using Wordle.Application.Users.DTOs;
 using Wordle.Domain.Users;
 
-namespace Wordle.Infrastructure.Auth
+namespace Wordle.Infrastructure.Auth;
+
+public class TokenService : ITokenService
 {
-    public class TokenService : ITokenService
+    private readonly IConfiguration _configuration;
+
+    public TokenService(IConfiguration configuration)
     {
-        private readonly IConfiguration _configuration;
+        _configuration = configuration;
+    }
 
-        public TokenService(IConfiguration configuration)
+    public TokenResultDto CreateToken(User user)
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var claims = new List<Claim>
         {
-            _configuration = configuration;
-        }
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Role, user.Role.ToString()),
+            new Claim(ClaimTypes.Email, user.Email)
+        };
 
-        public string CreateAccessToken(User user)
+        var accessTokenExpires = DateTime.UtcNow.AddDays(7); // 1 hafta
+
+        var token = new JwtSecurityToken(
+            issuer: _configuration["Jwt:Issuer"],
+            audience: _configuration["Jwt:Audience"],
+            claims: claims,
+            expires: accessTokenExpires,
+            signingCredentials: creds
+);
+
+
+        var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
+        var refreshToken = GenerateRefreshToken();
+        var refreshExpires = DateTime.UtcNow.AddDays(21); // 3 hafta
+
+        return new TokenResultDto
         {
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.Nickname),
-                new Claim(ClaimTypes.Role, user.Role.ToString())
-            };
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            RefreshTokenExpiresAt = refreshExpires
+        };
+    }
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(15),
-                signingCredentials: creds
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-
-        public string CreateRefreshToken()
-        {
-            return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-        }
-        
+    private string GenerateRefreshToken()
+    {
+        var randomNumber = new byte[32];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(randomNumber);
+        return Convert.ToBase64String(randomNumber);
     }
 }

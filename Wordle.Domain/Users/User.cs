@@ -13,6 +13,8 @@
         public bool IsKvkkAccepted { get; set; }
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiresAt { get; set; }
+        public string? EmailVerificationCode { get; set; }
+        public DateTime? EmailVerificationExpiresAt { get; set; }
 
     }
 }

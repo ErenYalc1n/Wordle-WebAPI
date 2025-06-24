@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Wordle.Application.Users
+namespace Wordle.Application.Users.Commands.Logout
 {
     public class LogoutUserCommand : IRequest
     {

@@ -2,8 +2,15 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Wordle.Application.Users;
-using Wordle.Application.Users.Commands;
+using Wordle.Application.Common.Interfaces;
+using Wordle.Application.Mail;
+using Wordle.Application.Users.Commands.Delete;
+using Wordle.Application.Users.Commands.Login;
+using Wordle.Application.Users.Commands.Logout;
+using Wordle.Application.Users.Commands.RefreshToken;
+using Wordle.Application.Users.Commands.Register;
+using Wordle.Application.Users.Commands.Update;
+using Wordle.Infrastructure.Mail;
 
 namespace Wordle.WebAPI.Controllers
 {
@@ -24,7 +31,7 @@ namespace Wordle.WebAPI.Controllers
             var result = await _mediator.Send(command);
             return Ok(result);
         }
-        
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginUserCommand command)
         {
@@ -32,14 +39,15 @@ namespace Wordle.WebAPI.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "UnverifiedPlayer,Player")]
         [HttpGet("me")]
-        [Authorize]
         public IActionResult Me()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // veya ClaimTypes.Name
             return Ok($"Selam kullanıcı: {userId}");
         }
 
+        [Authorize(Roles = "UnverifiedPlayer,Player")]
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand command)
         {
@@ -47,7 +55,7 @@ namespace Wordle.WebAPI.Controllers
             return Ok(result);
         }
 
-        [Authorize]
+        [Authorize(Roles = "UnverifiedPlayer,Player")]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
@@ -60,8 +68,7 @@ namespace Wordle.WebAPI.Controllers
 
             return Ok("Çıkış başarılı.");
         }
-
-        [Authorize]
+        [Authorize(Roles = "UnverifiedPlayer,Player")]
         [HttpDelete("delete")]
         public async Task<IActionResult> Delete()
         {
@@ -69,6 +76,13 @@ namespace Wordle.WebAPI.Controllers
             return Ok("Hesap başarıyla silindi.");
         }
 
-
+        [Authorize(Roles = "Player")]
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserCommand command)
+        {
+            await _mediator.Send(command);
+            return Ok("Profil güncellendi.");
+        }
+        
     }
 }
