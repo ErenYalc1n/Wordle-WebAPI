@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using Wordle.Application.Common.Exceptions;
-using Wordle.Application.Common.Interfaces;
 using Wordle.Application.Users.DTOs;
 using Wordle.Domain.Users;
 
@@ -47,8 +46,8 @@ public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, C
             Id = user.Id,
             Email = user.Email,
             Nickname = user.Nickname,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
+            FirstName = user.FirstName ?? string.Empty,
+            LastName = user.LastName ?? string.Empty,
             Role = user.Role.ToString()
         };
     }

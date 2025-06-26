@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="Guesses\" />
-    <Folder Include="DailyWords\" />
     <Folder Include="Scores\" />
   </ItemGroup>
 

@@ -9,8 +9,10 @@ using Serilog.Sinks.MSSqlServer;
 using System.Text;
 using Wordle.Application.Common.Behaviors;
 using Wordle.Application.Common.Interfaces;
+using Wordle.Application.DailyWords.Commands.Add;
 using Wordle.Application.Users.Commands.Register;
 using Wordle.Application.Users.Commands.ResetPassword;
+using Wordle.Domain.DailyWords;
 using Wordle.Domain.Users;
 using Wordle.Infrastructure.Auth;
 using Wordle.Infrastructure.CurrentUser;
@@ -19,6 +21,7 @@ using Wordle.Infrastructure.Mail;
 using Wordle.Infrastructure.Repositories;
 using Wordle.Infrastructure.Security;
 using Wordle.WebAPI.Middlewares;
+using Wordle.Infrastructure.JsonConverters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +59,7 @@ builder.Services.AddMediatR(typeof(RegisterUserCommand).Assembly);
 
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<ResetPasswordValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<AddDailyWordCommandValidator>();
 
 builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
@@ -64,6 +68,7 @@ builder.Services.AddDbContext<WordleDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddScoped<IDailyWordRepository, EfDailyWordRepository>();
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
@@ -92,6 +97,11 @@ builder.Services.AddAuthentication("Bearer")
         };
 
     });
+
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+{
+    options.SerializerOptions.Converters.Add(new DateOnlyJsonConverter());
+});
 
 builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())

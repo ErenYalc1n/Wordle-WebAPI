@@ -2,11 +2,16 @@
 {
     public interface IDailyWordRepository
     {
-        Task<DailyWord?> GetTodayWordAsync();
+        Task<DailyWord?> GetTodayWordAsync(DateOnly date);
         Task<List<DailyWord>> GetPastWordsAsync(int page, int pageSize);
         Task<List<DailyWord>> GetPlannedWordsAsync(int page, int pageSize);
         Task AddAsync(DailyWord word);
         Task<List<DailyWord>> SearchAsync(string keyword, bool isPast, int page, int pageSize);
-        Task<bool> IsDateTakenAsync(DateTime date);
+        Task<bool> IsDateTakenAsync(DateTime date);      
+        Task UpdateAsync(DailyWord updatedWord);
+        Task<int> CountPlannedAsync();
+        Task<int> CountPastAsync();
+        Task DeleteByDateAsync(DateOnly date);
+
     }
 }
