@@ -15,6 +15,8 @@
         public DateTime? RefreshTokenExpiresAt { get; set; }
         public string? EmailVerificationCode { get; set; }
         public DateTime? EmailVerificationExpiresAt { get; set; }
+        public string? PasswordResetCode { get; set; }
+        public DateTime? PasswordResetExpiresAt { get; set; }
 
     }
 }

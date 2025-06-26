@@ -1,21 +1,42 @@
+using AspNetCoreRateLimit;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Sinks.MSSqlServer;
 using System.Text;
 using Wordle.Application.Common.Behaviors;
 using Wordle.Application.Common.Interfaces;
 using Wordle.Application.Users.Commands.Register;
+using Wordle.Application.Users.Commands.ResetPassword;
 using Wordle.Domain.Users;
 using Wordle.Infrastructure.Auth;
 using Wordle.Infrastructure.CurrentUser;
 using Wordle.Infrastructure.Data;
 using Wordle.Infrastructure.Mail;
 using Wordle.Infrastructure.Repositories;
-
+using Wordle.Infrastructure.Security;
+using Wordle.WebAPI.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console()
+    .WriteTo.MSSqlServer(
+        connectionString: builder.Configuration.GetConnectionString("DefaultConnection"),
+        sinkOptions: new MSSqlServerSinkOptions
+        {
+            TableName = "Logs",
+            AutoCreateSqlTable = true
+        })
+    .Enrich.FromLogContext()
+    .CreateLogger();
+
+
+builder.Host.UseSerilog();
 
 builder.Services.Configure<SmtpSettings>(
     builder.Configuration.GetSection("SmtpSettings"));
@@ -23,11 +44,18 @@ builder.Services.AddScoped<IEMailService, SmtpEmailService>();
 
 
 builder.Services.AddControllers();
+
+builder.Services.AddMemoryCache();
+builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+builder.Services.AddInMemoryRateLimiting();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
 builder.Services.AddOpenApi();
 
 builder.Services.AddMediatR(typeof(RegisterUserCommand).Assembly);
 
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<ResetPasswordValidator>();
 
 builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
@@ -38,6 +66,7 @@ builder.Services.AddDbContext<WordleDbContext>(options =>
 
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -100,7 +129,10 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+Log.Information("Uygulama baþlatýlýyor...");
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -110,10 +142,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
+app.UseIpRateLimiting();
 
 app.Run();

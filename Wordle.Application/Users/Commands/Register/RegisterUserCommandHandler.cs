@@ -1,4 +1,6 @@
 ﻿using MediatR;
+using Microsoft.Extensions.Logging;
+using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
 using Wordle.Application.Users.Commands.Register;
 using Wordle.Application.Users.DTOs;
@@ -9,24 +11,33 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, A
     private readonly IUserRepository _userRepository;
     private readonly ITokenService _tokenService;
     private readonly IEMailService _emailService;
+    private readonly IPasswordHasher _passwordHasher;
+    private readonly ILogger<RegisterUserCommandHandler> _logger;
 
     public RegisterUserCommandHandler(
         IUserRepository userRepository,
         ITokenService tokenService,
-        IEMailService emailService)
+        IEMailService emailService,
+        IPasswordHasher passwordHasher,
+        ILogger<RegisterUserCommandHandler> logger)
     {
         _userRepository = userRepository;
         _tokenService = tokenService;
         _emailService = emailService;
+        _passwordHasher = passwordHasher;
+        _logger = logger;
     }
 
     public async Task<AuthResultDto> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
         var existingUser = await _userRepository.GetByEmailAsync(request.Email);
         if (existingUser != null)
-            throw new Exception("Bu e-posta zaten kayıtlı.");
+        {
+            _logger.LogWarning("Register failed: E-posta zaten kayıtlı. Email: {Email}", request.Email);
+            throw new ConflictException("Bu e-posta zaten kayıtlı.");
+        }
 
-        var passwordHash = FakeHash(request.Password);
+        var passwordHash = _passwordHasher.Hash(request.Password);
 
         var user = new User
         {
@@ -45,10 +56,14 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, A
 
         await _userRepository.AddAsync(user);
 
+        _logger.LogInformation("Register success: Yeni kullanıcı kaydı oluşturuldu. UserId: {UserId}, Email: {Email}", user.Id, user.Email);
+
         await _emailService.SendEmailAsync(
             user.Email,
             "Wordle Mail Adresi Onayı",
             $"Doğrulama Kodunuz: {user.EmailVerificationCode}");
+
+        _logger.LogInformation("Register: Doğrulama e-postası gönderildi. Email: {Email}", user.Email);
 
         var tokens = _tokenService.CreateToken(user);
         user.RefreshToken = tokens.RefreshToken;
@@ -62,7 +77,4 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, A
             RefreshToken = tokens.RefreshToken
         };
     }
-
-    private string FakeHash(string password) => $"HASHED::{password}";
 }
-

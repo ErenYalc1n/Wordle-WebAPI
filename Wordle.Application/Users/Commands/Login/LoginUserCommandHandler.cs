@@ -1,4 +1,6 @@
 ﻿using MediatR;
+using Microsoft.Extensions.Logging;
+using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
 using Wordle.Application.Users.DTOs;
 using Wordle.Domain.Users;
@@ -9,11 +11,19 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, LoginRe
 {
     private readonly IUserRepository _userRepository;
     private readonly ITokenService _tokenService;
+    private readonly IPasswordHasher _passwordHasher;
+    private readonly ILogger<LoginUserCommandHandler> _logger;
 
-    public LoginUserCommandHandler(IUserRepository userRepository, ITokenService tokenService)
+    public LoginUserCommandHandler(
+        IUserRepository userRepository,
+        ITokenService tokenService,
+        IPasswordHasher passwordHasher,
+        ILogger<LoginUserCommandHandler> logger)
     {
         _userRepository = userRepository;
         _tokenService = tokenService;
+        _passwordHasher = passwordHasher;
+        _logger = logger;
     }
 
     public async Task<LoginResultDto> Handle(LoginUserCommand request, CancellationToken cancellationToken)
@@ -21,10 +31,18 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, LoginRe
         var user = await _userRepository.GetByIdentifierAsync(request.Identifier);
 
         if (user is null)
-            throw new UnauthorizedAccessException("Kullanıcı bulunamadı.");
+        {
+            _logger.LogWarning("Login failed: kullanıcı bulunamadı. Identifier: {Identifier}", request.Identifier);
 
-        if (user.PasswordHash != FakeHash(request.Password))
-            throw new UnauthorizedAccessException("Şifre hatalı.");
+            throw new UnauthorizedAppException("Kullanıcı bulunamadı.");
+        }
+
+        if (!_passwordHasher.Verify(request.Password, user.PasswordHash))
+        {
+            _logger.LogWarning("Login failed: şifre hatalı. UserId: {UserId}, Email: {Email}", user.Id, user.Email);
+
+             throw new UnauthorizedAppException("Şifre hatalı.");
+        }
 
         var tokens = _tokenService.CreateToken(user);
 
@@ -33,15 +51,12 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, LoginRe
 
         await _userRepository.UpdateAsync(user);
 
+        _logger.LogInformation("Login success: Kullanıcı giriş yaptı. UserId: {UserId}, Email: {Email}", user.Id, user.Email);
+
         return new LoginResultDto
         {
             AccessToken = tokens.AccessToken,
             RefreshToken = tokens.RefreshToken
         };
-    }
-
-    private string FakeHash(string password)
-    {
-        return $"HASHED::{password}";
     }
 }

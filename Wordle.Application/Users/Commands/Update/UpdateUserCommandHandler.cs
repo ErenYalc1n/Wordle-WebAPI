@@ -1,6 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
+using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
 using Wordle.Domain.Users;
 
@@ -10,28 +12,42 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand>
 {
     private readonly IUserRepository _userRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ILogger<UpdateUserCommandHandler> _logger;
 
-    public UpdateUserCommandHandler(IUserRepository userRepository, IHttpContextAccessor httpContextAccessor)
+    public UpdateUserCommandHandler(
+        IUserRepository userRepository,
+        IHttpContextAccessor httpContextAccessor,
+        ILogger<UpdateUserCommandHandler> logger)
     {
         _userRepository = userRepository;
         _httpContextAccessor = httpContextAccessor;
+        _logger = logger;
     }
 
     public async Task<Unit> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
     {
         var userIdString = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
         if (!Guid.TryParse(userIdString, out var userId))
-            throw new Exception("Kimlik doğrulama başarısız.");
+        {
+            _logger.LogWarning("UpdateUser: JWT'den kullanıcı ID çözülemedi.");
+            throw new UnauthorizedAppException("Kimlik doğrulama başarısız.");
+        }
 
         var user = await _userRepository.GetByIdAsync(userId);
         if (user is null)
-            throw new Exception("Kullanıcı bulunamadı.");
+        {
+            _logger.LogWarning("UpdateUser: Kullanıcı bulunamadı. UserId: {UserId}", userId);
+            throw new UnauthorizedAppException("Kullanıcı bulunamadı.");
+        }
 
         user.Nickname = request.Nickname;
         user.FirstName = request.FirstName;
         user.LastName = request.LastName;
 
         await _userRepository.UpdateAsync(user);
+
+        _logger.LogInformation("UpdateUser: Kullanıcı bilgileri güncellendi. UserId: {UserId}", user.Id);
 
         return Unit.Value;
     }

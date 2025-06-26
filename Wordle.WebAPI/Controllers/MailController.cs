@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wordle.Application.Common.Interfaces;
 using Wordle.Application.Mail;
+using Wordle.Application.Users.Commands.ForgotPassword;
 using Wordle.Application.Users.Commands.VerifyEmail;
 
 
@@ -35,6 +36,13 @@ public class MailController : ControllerBase
     {
         var result = await _mediator.Send(command);
         return Ok(result); 
+    }
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordCommand command)
+    {
+        await _mediator.Send(command);
+        return Ok("Şifre sıfırlama maili gönderildi.");
     }
 
 }
