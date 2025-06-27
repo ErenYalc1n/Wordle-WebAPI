@@ -1,9 +1,8 @@
-﻿namespace Wordle.Domain.Guesses
+﻿namespace Wordle.Domain.Guesses;
+
+public interface IGuessRepository
 {
-    public interface IGuessRepository
-    {
-        Task AddAsync(Guess guess);
-        Task<List<Guess>> GetGuessesByUserAndDateAsync(Guid userId, DateTime date);
-        Task<int> GetGuessCountForUserAsync(Guid userId, DateTime date);
-    }
+    Task<bool> HasCorrectGuessAsync(Guid userId, Guid dailyWordId, CancellationToken cancellationToken = default);
+    Task<int> GetGuessCountAsync(Guid userId, Guid dailyWordId, CancellationToken cancellationToken = default);
+    Task AddAsync(Guess guess, CancellationToken cancellationToken = default);
 }

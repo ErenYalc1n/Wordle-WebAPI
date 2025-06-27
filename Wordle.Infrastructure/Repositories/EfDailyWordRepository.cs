@@ -115,6 +115,18 @@ public class EfDailyWordRepository : IDailyWordRepository
         _context.DailyWords.Remove(word);
         await _context.SaveChangesAsync();
     }
+    public async Task<DailyWord?> GetByDateAsync(DateOnly date)
+    {
+        var dateTime = date.ToDateTime(TimeOnly.MinValue);
+        return await _context.DailyWords
+            .FirstOrDefaultAsync(w => w.Date.Date == dateTime.Date);
+    }
+
+    public async Task<DailyWord?> GetByWordAsync(string word)
+    {
+        return await _context.DailyWords
+            .FirstOrDefaultAsync(w => w.Word.ToLower() == word.ToLower());
+    }
 
 
 }

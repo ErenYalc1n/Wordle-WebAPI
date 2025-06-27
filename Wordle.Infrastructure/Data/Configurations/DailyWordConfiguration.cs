@@ -12,10 +12,10 @@ public class DailyWordConfiguration : IEntityTypeConfiguration<DailyWord>
 
         builder.Property(e => e.Word)
                .IsRequired()
-               .HasMaxLength(5); // sadece 5 harfli kelimeler
+               .HasMaxLength(5);
 
         builder.Property(e => e.Date)
                .IsRequired()
-               .HasColumnType("date"); // saat bilgisi olmadan tarih
+               .HasColumnType("date");
     }
 }

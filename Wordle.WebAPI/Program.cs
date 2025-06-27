@@ -13,15 +13,16 @@ using Wordle.Application.DailyWords.Commands.Add;
 using Wordle.Application.Users.Commands.Register;
 using Wordle.Application.Users.Commands.ResetPassword;
 using Wordle.Domain.DailyWords;
+using Wordle.Domain.Guesses;
 using Wordle.Domain.Users;
 using Wordle.Infrastructure.Auth;
 using Wordle.Infrastructure.CurrentUser;
 using Wordle.Infrastructure.Data;
+using Wordle.Infrastructure.JsonConverters;
 using Wordle.Infrastructure.Mail;
 using Wordle.Infrastructure.Repositories;
 using Wordle.Infrastructure.Security;
 using Wordle.WebAPI.Middlewares;
-using Wordle.Infrastructure.JsonConverters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,6 +73,7 @@ builder.Services.AddScoped<IDailyWordRepository, EfDailyWordRepository>();
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
+builder.Services.AddScoped<IGuessRepository, EFGuessRepository>();
 
 builder.Services.AddEndpointsApiExplorer();
 

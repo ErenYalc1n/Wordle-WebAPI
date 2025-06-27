@@ -3,14 +3,16 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wordle.Application.DailyWords.Commands.Add;
 using Wordle.Application.DailyWords.Commands.Delete;
+using Wordle.Application.DailyWords.Commands.Update;
 using Wordle.Application.DailyWords.DTOs;
 using Wordle.Application.DailyWords.Queries.GetPastList;
 using Wordle.Application.DailyWords.Queries.GetPlannedList;
 using Wordle.Application.DailyWords.Queries.GetToday;
+using Wordle.Application.DailyWords.Queries.Search;
 using Wordle.Domain.DailyWords;
 
-
 namespace Wordle.WebAPI.Controllers;
+
 
 [Route("api/[controller]")]
 [ApiController]
@@ -70,6 +72,31 @@ public class DailyWordsController : ControllerBase
         await _mediator.Send(new DeletePlannedWordCommand { Date = parsedDate });
 
         return Ok(new { message = "Kelime başarıyla silindi." });
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPut]
+    public async Task<IActionResult> Update([FromBody] UpdateDailyWordCommand command)
+    {
+        await _mediator.Send(command);
+        return Ok(new { message = "Kelime başarıyla güncellendi." });
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("search")]
+    public async Task<IActionResult> Search([FromQuery] string input)
+    {
+        var result = await _mediator.Send(new SearchDailyWordQuery(input));
+
+        if (result == null)
+        {
+            if (DateOnly.TryParse(input, out _))
+                return NotFound(new { error = "Seçtiğiniz tarihte kelime bulunmuyor." });
+
+            return NotFound(new { error = "Bu kelime ile daha önce kayıt oluşturulmamış." });
+        }
+
+        return Ok(result);
     }
 
 }
