@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
 using Wordle.Application.Users.DTOs;
+using Wordle.Domain.Common;
 using Wordle.Domain.Users;
 
 namespace Wordle.Application.Users.Commands.RefreshToken;
@@ -12,15 +13,18 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, L
     private readonly IUserRepository _userRepository;
     private readonly ITokenService _tokenService;
     private readonly ILogger<RefreshTokenCommandHandler> _logger;
+    private readonly IUnitOfWork _unitOfWork;
 
     public RefreshTokenCommandHandler(
         IUserRepository userRepository,
         ITokenService tokenService,
-        ILogger<RefreshTokenCommandHandler> logger)
+        ILogger<RefreshTokenCommandHandler> logger,
+        IUnitOfWork unitOfWork)
     {
         _userRepository = userRepository;
         _tokenService = tokenService;
         _logger = logger;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<LoginResultDto> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
@@ -32,8 +36,8 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, L
             _logger.LogWarning("RefreshToken: Null veya boş refresh token alındı.");
             throw new UnauthorizedAppException("Geçersiz token.");
         }
-        var user = await _userRepository.GetByRefreshTokenAsync(request.RefreshToken);
 
+        var user = await _userRepository.GetByRefreshTokenAsync(request.RefreshToken);
 
         if (user is null || user.RefreshTokenExpiresAt < DateTime.UtcNow)
         {
@@ -47,6 +51,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, L
         user.RefreshTokenExpiresAt = tokens.RefreshTokenExpiresAt;
 
         await _userRepository.UpdateAsync(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("RefreshToken: Token başarıyla yenilendi. UserId: {UserId}, Email: {Email}", user.Id, user.Email);
 

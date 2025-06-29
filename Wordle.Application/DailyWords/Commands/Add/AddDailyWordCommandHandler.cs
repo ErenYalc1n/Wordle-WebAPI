@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Wordle.Domain.Common;
 using Wordle.Domain.DailyWords;
 
 namespace Wordle.Application.DailyWords.Commands.Add;
@@ -6,15 +7,17 @@ namespace Wordle.Application.DailyWords.Commands.Add;
 public class AddDailyWordCommandHandler : IRequestHandler<AddDailyWordCommand, Guid>
 {
     private readonly IDailyWordRepository _repository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public AddDailyWordCommandHandler(IDailyWordRepository repository)
+    public AddDailyWordCommandHandler(IDailyWordRepository repository, IUnitOfWork unitOfWork)
     {
         _repository = repository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Guid> Handle(AddDailyWordCommand request, CancellationToken cancellationToken)
     {
-        var date = request.DailyWord.Date.ToDateTime(TimeOnly.MinValue); 
+        var date = request.DailyWord.Date.ToDateTime(TimeOnly.MinValue);
 
         var isTaken = await _repository.IsDateTakenAsync(date);
         if (isTaken)
@@ -27,7 +30,10 @@ public class AddDailyWordCommandHandler : IRequestHandler<AddDailyWordCommand, G
             Date = date
         };
 
-        await _repository.AddAsync(word);
+        await _repository.AddAsync(word);       
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        
+
         return word.Id;
     }
 }

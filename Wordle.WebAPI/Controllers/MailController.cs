@@ -22,13 +22,13 @@ public class MailController : ControllerBase
         _mediator = mediator;
     }
 
-
-    [HttpPost("send")]
-    public async Task<IActionResult> SendEmail([FromBody] SendEmailRequest request)
-    {
-        await _emailService.SendEmailAsync(request.To, request.Subject, request.Body);
-        return Ok("Mail gönderildi.");
-    }
+    //test endpointi.
+    //[HttpPost("send")]
+    //public async Task<IActionResult> SendEmail([FromBody] SendEmailRequest request)
+    //{
+    //    await _emailService.SendEmailAsync(request.To, request.Subject, request.Body);
+    //    return Ok("Mail gönderildi.");
+    //}
 
     [Authorize(Roles = "UnverifiedPlayer")]
     [HttpPost("verify-email")]

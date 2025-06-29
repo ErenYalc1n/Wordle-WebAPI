@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
@@ -13,15 +14,18 @@ public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, C
     private readonly IUserRepository _userRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<GetCurrentUserQueryHandler> _logger;
+    private readonly IMapper _mapper;
 
     public GetCurrentUserQueryHandler(
         IUserRepository userRepository,
         IHttpContextAccessor httpContextAccessor,
-        ILogger<GetCurrentUserQueryHandler> logger)
+        ILogger<GetCurrentUserQueryHandler> logger,
+        IMapper mapper)
     {
         _userRepository = userRepository;
         _httpContextAccessor = httpContextAccessor;
         _logger = logger;
+        _mapper = mapper;
     }
 
     public async Task<CurrentUserDto> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
@@ -41,14 +45,6 @@ public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, C
             throw new NotFoundException("Kullanıcı bulunamadı.");
         }
 
-        return new CurrentUserDto
-        {
-            Id = user.Id,
-            Email = user.Email,
-            Nickname = user.Nickname,
-            FirstName = user.FirstName ?? string.Empty,
-            LastName = user.LastName ?? string.Empty,
-            Role = user.Role.ToString()
-        };
+        return _mapper.Map<CurrentUserDto>(user);
     }
 }

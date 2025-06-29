@@ -13,59 +13,58 @@ namespace Wordle.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task AddAsync(User user)
+        public Task AddAsync(User user)
         {
-            await _context.Users.AddAsync(user);
-            await _context.SaveChangesAsync();
+            _context.Users.Add(user);
+            return Task.CompletedTask;
         }
 
-        public async Task<User?> GetByEmailAsync(string email) =>
-            await _context.Users.FirstOrDefaultAsync(x => x.Email == email);
+        public Task<User?> GetByEmailAsync(string email) =>
+            _context.Users.FirstOrDefaultAsync(x => x.Email == email);
 
-        public async Task<User?> GetByIdAsync(Guid id) =>
-            await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
+        public Task<User?> GetByIdAsync(Guid id) =>
+            _context.Users.FirstOrDefaultAsync(x => x.Id == id);
 
         public void Update(User user)
         {
             _context.Users.Update(user);
         }
+
         public void Delete(User user)
         {
             _context.Users.Remove(user);
         }
-        public async Task<bool> IsEmailConfirmedAsync(string email) =>
-            await _context.Users.AnyAsync(x => x.Email == email && x.IsEmailConfirmed);
 
-        public async Task<bool> IsReminderEmailAllowedAsync(Guid userId) =>
-            await _context.Users.AnyAsync(x => x.Id == userId && x.IsKvkkAccepted);
+        public Task<bool> IsEmailConfirmedAsync(string email) =>
+            _context.Users.AnyAsync(x => x.Email == email && x.IsEmailConfirmed);
 
-        public async Task<User?> AuthenticateAsync(string email, string passwordHash) =>
-            await _context.Users.FirstOrDefaultAsync(x =>
+        public Task<bool> IsReminderEmailAllowedAsync(Guid userId) =>
+            _context.Users.AnyAsync(x => x.Id == userId && x.IsKvkkAccepted);
+
+        public Task<User?> AuthenticateAsync(string email, string passwordHash) =>
+            _context.Users.FirstOrDefaultAsync(x =>
                 x.Email == email && x.PasswordHash == passwordHash);
 
-        public async Task<User?> GetByNicknameAsync(string nickname)
-        {
-            return await _context.Users.FirstOrDefaultAsync(x => x.Nickname == nickname);
-        }
-        public async Task UpdateAsync(User user)
+        public Task<User?> GetByNicknameAsync(string nickname) =>
+            _context.Users.FirstOrDefaultAsync(x => x.Nickname == nickname);
+
+        public Task UpdateAsync(User user)
         {
             _context.Users.Update(user);
-            await _context.SaveChangesAsync();
+            return Task.CompletedTask;
         }
-        public async Task<User?> GetByIdentifierAsync(string identifier)
-        {
-            return await _context.Users.FirstOrDefaultAsync(x =>
+
+        public Task<User?> GetByIdentifierAsync(string identifier) =>
+            _context.Users.FirstOrDefaultAsync(x =>
                 x.Email == identifier || x.Nickname == identifier);
-        }
 
-        public async Task<User?> GetByRefreshTokenAsync(string refreshToken) =>
-            await _context.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+        public Task<User?> GetByRefreshTokenAsync(string refreshToken) =>
+            _context.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
 
-        public async Task DeleteAsync(User user)
+        public Task DeleteAsync(User user)
         {
             _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
+            return Task.CompletedTask;
         }
-
     }
 }

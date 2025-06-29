@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
+using Wordle.Domain.Common;
 using Wordle.Domain.Users;
 
 namespace Wordle.Application.Users.Commands.ChangePassword;
@@ -14,17 +15,20 @@ public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordComman
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IPasswordHasher _passwordHasher;
     private readonly ILogger<ChangePasswordCommandHandler> _logger;
+    private readonly IUnitOfWork _unitOfWork;
 
     public ChangePasswordCommandHandler(
         IUserRepository userRepository,
         IHttpContextAccessor httpContextAccessor,
         IPasswordHasher passwordHasher,
-        ILogger<ChangePasswordCommandHandler> logger)
+        ILogger<ChangePasswordCommandHandler> logger,
+        IUnitOfWork unitOfWork)
     {
         _userRepository = userRepository;
         _httpContextAccessor = httpContextAccessor;
         _passwordHasher = passwordHasher;
         _logger = logger;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<string> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
@@ -52,6 +56,7 @@ public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordComman
 
         user.PasswordHash = _passwordHasher.Hash(request.NewPassword);
         await _userRepository.UpdateAsync(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("ChangePassword: Şifre başarıyla değiştirildi. UserId: {UserId}", user.Id);
 

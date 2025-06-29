@@ -5,6 +5,7 @@ using System.Security.Claims;
 using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
 using Wordle.Application.Users.DTOs;
+using Wordle.Domain.Common;
 using Wordle.Domain.Users;
 
 namespace Wordle.Application.Users.Commands.VerifyEmail;
@@ -15,17 +16,20 @@ public class VerifyEmailCommandHandler : IRequestHandler<VerifyEmailCommand, Aut
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ITokenService _tokenService;
     private readonly ILogger<VerifyEmailCommandHandler> _logger;
+    private readonly IUnitOfWork _unitOfWork;
 
     public VerifyEmailCommandHandler(
         IUserRepository userRepository,
         IHttpContextAccessor httpContextAccessor,
         ITokenService tokenService,
-        ILogger<VerifyEmailCommandHandler> logger)
+        ILogger<VerifyEmailCommandHandler> logger,
+        IUnitOfWork unitOfWork)
     {
         _userRepository = userRepository;
         _httpContextAccessor = httpContextAccessor;
         _tokenService = tokenService;
         _logger = logger;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<AuthResultDto> Handle(VerifyEmailCommand request, CancellationToken cancellationToken)
@@ -60,6 +64,7 @@ public class VerifyEmailCommandHandler : IRequestHandler<VerifyEmailCommand, Aut
         user.RefreshTokenExpiresAt = tokens.RefreshTokenExpiresAt;
 
         await _userRepository.UpdateAsync(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("VerifyEmail: E-posta başarıyla doğrulandı. UserId: {UserId}, Email: {Email}", user.Id, user.Email);
 

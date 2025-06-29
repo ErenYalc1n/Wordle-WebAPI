@@ -18,9 +18,11 @@ public class GuessesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Player")]
     public async Task<IActionResult> Create([FromBody] CreateGuessCommand command)
     {
-        var id = await _mediator.Send(command);
-        return Ok(new { GuessId = id });
+        var result = await _mediator.Send(command);
+        return Ok(result);
     }
+
 }

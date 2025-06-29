@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
+using Wordle.Domain.Common;
 using Wordle.Domain.Users;
 
 namespace Wordle.Application.Users.Commands.ForgotPassword;
@@ -11,15 +12,18 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
     private readonly IUserRepository _userRepository;
     private readonly IEMailService _emailService;
     private readonly ILogger<ForgotPasswordCommandHandler> _logger;
+    private readonly IUnitOfWork _unitOfWork;
 
     public ForgotPasswordCommandHandler(
         IUserRepository userRepository,
         IEMailService emailService,
-        ILogger<ForgotPasswordCommandHandler> logger)
+        ILogger<ForgotPasswordCommandHandler> logger,
+        IUnitOfWork unitOfWork)
     {
         _userRepository = userRepository;
         _emailService = emailService;
         _logger = logger;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Unit> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
@@ -35,6 +39,7 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
         user.PasswordResetExpiresAt = DateTime.UtcNow.AddMinutes(15);
 
         await _userRepository.UpdateAsync(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var body = $"Şifre sıfırlama kodunuz: {user.PasswordResetCode}";
         await _emailService.SendEmailAsync(user.Email, "Şifre Sıfırlama", body);

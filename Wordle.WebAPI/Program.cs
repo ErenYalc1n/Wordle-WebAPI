@@ -12,10 +12,12 @@ using Wordle.Application.Common.Interfaces;
 using Wordle.Application.DailyWords.Commands.Add;
 using Wordle.Application.Users.Commands.Register;
 using Wordle.Application.Users.Commands.ResetPassword;
+using Wordle.Domain.Common;
 using Wordle.Domain.DailyWords;
 using Wordle.Domain.Guesses;
 using Wordle.Domain.Users;
 using Wordle.Infrastructure.Auth;
+using Wordle.Infrastructure.Common;
 using Wordle.Infrastructure.CurrentUser;
 using Wordle.Infrastructure.Data;
 using Wordle.Infrastructure.JsonConverters;
@@ -62,6 +64,8 @@ builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<ResetPasswordValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<AddDailyWordCommandValidator>();
 
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
 builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
 
@@ -74,6 +78,8 @@ builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<IGuessRepository, EFGuessRepository>();
+builder.Services.AddScoped<IUnitOfWork, EfUnitOfWork>();
+
 
 builder.Services.AddEndpointsApiExplorer();
 

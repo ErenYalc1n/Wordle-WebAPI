@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
+using Wordle.Domain.Common;
 using Wordle.Domain.Users;
 
 namespace Wordle.Application.Users.Commands.ResetPassword;
@@ -11,15 +12,18 @@ public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand,
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly ILogger<ResetPasswordCommandHandler> _logger;
+    private readonly IUnitOfWork _unitOfWork;
 
     public ResetPasswordCommandHandler(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
-        ILogger<ResetPasswordCommandHandler> logger)
+        ILogger<ResetPasswordCommandHandler> logger,
+        IUnitOfWork unitOfWork)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _logger = logger;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<string> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
@@ -42,6 +46,7 @@ public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand,
         user.PasswordResetExpiresAt = null;
 
         await _userRepository.UpdateAsync(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken); // ✅ Mimariye uygun final dokunuş
 
         _logger.LogInformation("ResetPassword: Şifre başarıyla sıfırlandı. UserId: {UserId}, Email: {Email}", user.Id, user.Email);
 

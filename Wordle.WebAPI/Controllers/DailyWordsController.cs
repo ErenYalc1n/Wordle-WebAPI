@@ -13,7 +13,7 @@ using Wordle.Domain.DailyWords;
 
 namespace Wordle.WebAPI.Controllers;
 
-
+//[Authorize(Roles = "Admin")]
 [Route("api/[controller]")]
 [ApiController]
 public class DailyWordsController : ControllerBase
@@ -25,14 +25,7 @@ public class DailyWordsController : ControllerBase
         _mediator = mediator;
     }
 
-    [Authorize(Roles = "Admin")]
-    [HttpPost]
-    public async Task<IActionResult> Add([FromBody] AddDailyWordCommand command)
-    {
-        await _mediator.Send(command);
-        return Ok(new { message = "Kelime başarıyla eklendi." });
-    }
-
+    [AllowAnonymous]
     [HttpGet("today")]
     public async Task<ActionResult<GetDailyWordDto>> GetTodayWord()
     {
@@ -44,7 +37,13 @@ public class DailyWordsController : ControllerBase
         return Ok(word);
     }
 
-    [Authorize(Roles = "Admin")]
+    [HttpPost]
+    public async Task<IActionResult> Add([FromBody] AddDailyWordCommand command)
+    {
+        await _mediator.Send(command);
+        return Ok(new { message = "Kelime başarıyla eklendi." });
+    }   
+   
     [HttpGet("past")]
     public async Task<ActionResult<DailyWordListResultDto>> GetPastWords([FromQuery] int page = 1, [FromQuery] int pageSize = 15)
     {
@@ -52,7 +51,6 @@ public class DailyWordsController : ControllerBase
         return Ok(result);
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpGet("planned")]
     public async Task<ActionResult<DailyWordListResultDto>> GetPlannedWords([FromQuery] int page = 1, [FromQuery] int pageSize = 15)
     {
@@ -60,7 +58,6 @@ public class DailyWordsController : ControllerBase
         return Ok(result);
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpDelete("{date}")]
     public async Task<IActionResult> Delete([FromRoute] string date)
     {
@@ -74,7 +71,6 @@ public class DailyWordsController : ControllerBase
         return Ok(new { message = "Kelime başarıyla silindi." });
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] UpdateDailyWordCommand command)
     {
@@ -82,7 +78,7 @@ public class DailyWordsController : ControllerBase
         return Ok(new { message = "Kelime başarıyla güncellendi." });
     }
 
-    [Authorize(Roles = "Admin")]
+    
     [HttpGet("search")]
     public async Task<IActionResult> Search([FromQuery] string input)
     {

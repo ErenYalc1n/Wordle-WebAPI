@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
 using Wordle.Application.Users.DTOs;
+using Wordle.Domain.Common;
 using Wordle.Domain.Users;
 
 namespace Wordle.Application.Users.Commands.Login;
@@ -13,17 +14,20 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, LoginRe
     private readonly ITokenService _tokenService;
     private readonly IPasswordHasher _passwordHasher;
     private readonly ILogger<LoginUserCommandHandler> _logger;
+    private readonly IUnitOfWork _unitOfWork;
 
     public LoginUserCommandHandler(
         IUserRepository userRepository,
         ITokenService tokenService,
         IPasswordHasher passwordHasher,
-        ILogger<LoginUserCommandHandler> logger)
+        ILogger<LoginUserCommandHandler> logger,
+        IUnitOfWork unitOfWork)
     {
         _userRepository = userRepository;
         _tokenService = tokenService;
         _passwordHasher = passwordHasher;
         _logger = logger;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<LoginResultDto> Handle(LoginUserCommand request, CancellationToken cancellationToken)
@@ -33,15 +37,13 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, LoginRe
         if (user is null)
         {
             _logger.LogWarning("Login failed: kullanıcı bulunamadı. Identifier: {Identifier}", request.Identifier);
-
             throw new UnauthorizedAppException("Kullanıcı bulunamadı.");
         }
 
         if (!_passwordHasher.Verify(request.Password, user.PasswordHash))
         {
             _logger.LogWarning("Login failed: şifre hatalı. UserId: {UserId}, Email: {Email}", user.Id, user.Email);
-
-             throw new UnauthorizedAppException("Şifre hatalı.");
+            throw new UnauthorizedAppException("Şifre hatalı.");
         }
 
         var tokens = _tokenService.CreateToken(user);
@@ -50,6 +52,7 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, LoginRe
         user.RefreshTokenExpiresAt = tokens.RefreshTokenExpiresAt;
 
         await _userRepository.UpdateAsync(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Login success: Kullanıcı giriş yaptı. UserId: {UserId}, Email: {Email}", user.Id, user.Email);
 

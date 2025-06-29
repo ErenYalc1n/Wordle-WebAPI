@@ -25,8 +25,20 @@ public class EFGuessRepository : IGuessRepository
             .CountAsync(g => g.UserId == userId && g.DailyWordId == dailyWordId, cancellationToken);
     }
 
-    public async Task AddAsync(Guess guess, CancellationToken cancellationToken = default)
+    public Task AddAsync(Guess guess, CancellationToken cancellationToken = default)
     {
-        await _context.Guesses.AddAsync(guess, cancellationToken);
+        _context.Guesses.Add(guess);
+        return Task.CompletedTask;
+    }
+
+    public Task<bool> IsDuplicateGuessAsync(Guid userId, Guid dailyWordId, string guessText, CancellationToken cancellationToken = default)
+    {
+        var normalized = guessText.ToLowerInvariant();
+        return _context.Guesses
+            .AnyAsync(g =>
+                g.UserId == userId &&
+                g.DailyWordId == dailyWordId &&
+                g.GuessText.ToLower() == normalized,
+                cancellationToken);
     }
 }

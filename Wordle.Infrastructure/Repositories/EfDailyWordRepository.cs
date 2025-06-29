@@ -18,12 +18,12 @@ public class EfDailyWordRepository : IDailyWordRepository
     {
         return await _context.DailyWords
             .FirstOrDefaultAsync(x => x.Date.Date == date.ToDateTime(TimeOnly.MinValue).Date);
-    } 
+    }
 
-    public async Task AddAsync(DailyWord word)
+    public Task AddAsync(DailyWord word)
     {
         _context.DailyWords.Add(word);
-        await _context.SaveChangesAsync();
+        return Task.CompletedTask;
     }
 
     public async Task<List<DailyWord>> SearchAsync(string keyword, bool isPast, int page, int pageSize)
@@ -54,14 +54,14 @@ public class EfDailyWordRepository : IDailyWordRepository
         if (word is not null)
         {
             _context.DailyWords.Remove(word);
-            await _context.SaveChangesAsync();
+           
         }
     }
 
-    public async Task UpdateAsync(DailyWord updatedWord)
+    public Task UpdateAsync(DailyWord updatedWord)
     {
         _context.DailyWords.Update(updatedWord);
-        await _context.SaveChangesAsync();
+        return Task.CompletedTask;
     }
 
     public async Task<List<DailyWord>> GetPastWordsAsync(int page, int pageSize)
@@ -75,7 +75,6 @@ public class EfDailyWordRepository : IDailyWordRepository
             .Take(pageSize)
             .ToListAsync();
     }
-
 
     public async Task<List<DailyWord>> GetPlannedWordsAsync(int page, int pageSize)
     {
@@ -113,8 +112,8 @@ public class EfDailyWordRepository : IDailyWordRepository
             throw new InvalidOperationException("Geçmiş veya bugünkü kelime silinemez.");
 
         _context.DailyWords.Remove(word);
-        await _context.SaveChangesAsync();
     }
+
     public async Task<DailyWord?> GetByDateAsync(DateOnly date)
     {
         var dateTime = date.ToDateTime(TimeOnly.MinValue);
@@ -127,6 +126,4 @@ public class EfDailyWordRepository : IDailyWordRepository
         return await _context.DailyWords
             .FirstOrDefaultAsync(w => w.Word.ToLower() == word.ToLower());
     }
-
-
 }

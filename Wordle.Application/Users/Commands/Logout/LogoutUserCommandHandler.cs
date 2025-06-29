@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
+using Wordle.Domain.Common;
 using Wordle.Domain.Users;
 
 namespace Wordle.Application.Users.Commands.Logout;
@@ -10,13 +11,16 @@ public class LogoutUserCommandHandler : IRequestHandler<LogoutUserCommand>
 {
     private readonly IUserRepository _userRepository;
     private readonly ILogger<LogoutUserCommandHandler> _logger;
+    private readonly IUnitOfWork _unitOfWork;
 
     public LogoutUserCommandHandler(
         IUserRepository userRepository,
-        ILogger<LogoutUserCommandHandler> logger)
+        ILogger<LogoutUserCommandHandler> logger,
+        IUnitOfWork unitOfWork)
     {
         _userRepository = userRepository;
         _logger = logger;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Unit> Handle(LogoutUserCommand request, CancellationToken cancellationToken)
@@ -32,6 +36,7 @@ public class LogoutUserCommandHandler : IRequestHandler<LogoutUserCommand>
         user.RefreshTokenExpiresAt = null;
 
         await _userRepository.UpdateAsync(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Logout success: Kullanıcı çıkış yaptı. UserId: {UserId}", user.Id);
 

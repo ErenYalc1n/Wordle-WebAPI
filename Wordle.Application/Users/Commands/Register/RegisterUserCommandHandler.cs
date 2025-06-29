@@ -4,6 +4,7 @@ using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
 using Wordle.Application.Users.Commands.Register;
 using Wordle.Application.Users.DTOs;
+using Wordle.Domain.Common;
 using Wordle.Domain.Users;
 
 public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, AuthResultDto>
@@ -13,19 +14,22 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, A
     private readonly IEMailService _emailService;
     private readonly IPasswordHasher _passwordHasher;
     private readonly ILogger<RegisterUserCommandHandler> _logger;
+    private readonly IUnitOfWork _unitOfWork;
 
     public RegisterUserCommandHandler(
         IUserRepository userRepository,
         ITokenService tokenService,
         IEMailService emailService,
         IPasswordHasher passwordHasher,
-        ILogger<RegisterUserCommandHandler> logger)
+        ILogger<RegisterUserCommandHandler> logger,
+        IUnitOfWork unitOfWork)
     {
         _userRepository = userRepository;
         _tokenService = tokenService;
         _emailService = emailService;
         _passwordHasher = passwordHasher;
         _logger = logger;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<AuthResultDto> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
@@ -68,8 +72,8 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, A
         var tokens = _tokenService.CreateToken(user);
         user.RefreshToken = tokens.RefreshToken;
         user.RefreshTokenExpiresAt = tokens.RefreshTokenExpiresAt;
-
-        await _userRepository.UpdateAsync(user);
+        
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new AuthResultDto
         {
