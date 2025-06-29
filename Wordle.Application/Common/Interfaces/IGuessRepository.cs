@@ -1,4 +1,6 @@
-﻿namespace Wordle.Domain.Guesses;
+﻿using Wordle.Domain.Guesses;
+
+namespace Wordle.Application.Common.Interfaces;
 
 public interface IGuessRepository
 {

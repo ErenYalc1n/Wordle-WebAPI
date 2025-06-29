@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Wordle.Application.Common.Interfaces;
 using Wordle.Domain.Common;
 using Wordle.Domain.DailyWords;
 

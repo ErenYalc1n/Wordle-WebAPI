@@ -15,6 +15,7 @@ namespace Wordle.Infrastructure.Data
         public DbSet<User> Users => Set<User>();
         public DbSet<DailyWord> DailyWords => Set<DailyWord>();
         public DbSet<Guess> Guesses => Set<Guess>();
+        public DbSet<Score> Scores { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

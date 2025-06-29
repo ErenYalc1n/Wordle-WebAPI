@@ -2,6 +2,7 @@
 using MediatR;
 using Wordle.Domain.DailyWords;
 using Wordle.Application.DailyWords.DTOs;
+using Wordle.Application.Common.Interfaces;
 
 namespace Wordle.Application.DailyWords.Queries.GetToday;
 

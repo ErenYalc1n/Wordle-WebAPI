@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Wordle.Application.Users.DTOs
+﻿namespace Wordle.Application.Users.DTOs
 {
     public class AuthResultDto
     {

@@ -1,4 +1,6 @@
-﻿namespace Wordle.Domain.Users
+﻿using Wordle.Domain.Users;
+
+namespace Wordle.Application.Common.Interfaces
 {
     public interface IUserRepository
     {

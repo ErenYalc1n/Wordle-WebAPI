@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Wordle.Application.Common.Exceptions;
+using Wordle.Application.Common.Interfaces;
 using Wordle.Domain.DailyWords;
 using Wordle.Infrastructure.Data;
 

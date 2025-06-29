@@ -4,7 +4,6 @@ using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
 using Wordle.Application.Users.DTOs;
 using Wordle.Domain.Common;
-using Wordle.Domain.Users;
 
 namespace Wordle.Application.Users.Commands.RefreshToken;
 

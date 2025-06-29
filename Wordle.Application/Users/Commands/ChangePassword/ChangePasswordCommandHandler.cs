@@ -5,7 +5,6 @@ using System.Security.Claims;
 using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
 using Wordle.Domain.Common;
-using Wordle.Domain.Users;
 
 namespace Wordle.Application.Users.Commands.ChangePassword;
 

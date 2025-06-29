@@ -60,20 +60,27 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, A
 
         await _userRepository.AddAsync(user);
 
-        _logger.LogInformation("Register success: Yeni kullanıcı kaydı oluşturuldu. UserId: {UserId}, Email: {Email}", user.Id, user.Email);
-
-        await _emailService.SendEmailAsync(
-            user.Email,
-            "Wordle Mail Adresi Onayı",
-            $"Doğrulama Kodunuz: {user.EmailVerificationCode}");
-
-        _logger.LogInformation("Register: Doğrulama e-postası gönderildi. Email: {Email}", user.Email);
-
         var tokens = _tokenService.CreateToken(user);
         user.RefreshToken = tokens.RefreshToken;
         user.RefreshTokenExpiresAt = tokens.RefreshTokenExpiresAt;
-        
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Register success: Yeni kullanıcı kaydı oluşturuldu. UserId: {UserId}, Email: {Email}", user.Id, user.Email);
+
+        try
+        {
+            await _emailService.SendEmailAsync(
+                user.Email,
+                "Wordle Mail Adresi Onayı",
+                $"Doğrulama Kodunuz: {user.EmailVerificationCode}");
+
+            _logger.LogInformation("Register: Doğrulama e-postası gönderildi. Email: {Email}", user.Email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Register: Doğrulama maili gönderilirken hata oluştu. UserId: {UserId}", user.Id);
+        }
 
         return new AuthResultDto
         {

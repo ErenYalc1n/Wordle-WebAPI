@@ -59,12 +59,12 @@ public class VerifyEmailCommandHandler : IRequestHandler<VerifyEmailCommand, Aut
         user.EmailVerificationCode = null;
         user.EmailVerificationExpiresAt = null;
 
+        await _userRepository.UpdateAsync(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
         var tokens = _tokenService.CreateToken(user);
         user.RefreshToken = tokens.RefreshToken;
         user.RefreshTokenExpiresAt = tokens.RefreshTokenExpiresAt;
-
-        await _userRepository.UpdateAsync(user);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("VerifyEmail: E-posta başarıyla doğrulandı. UserId: {UserId}, Email: {Email}", user.Id, user.Email);
 

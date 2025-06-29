@@ -4,7 +4,6 @@ using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
 using Wordle.Application.Users.DTOs;
 using Wordle.Domain.Common;
-using Wordle.Domain.Users;
 
 namespace Wordle.Application.Users.Commands.Login;
 
@@ -45,6 +44,9 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, LoginRe
             _logger.LogWarning("Login failed: şifre hatalı. UserId: {UserId}, Email: {Email}", user.Id, user.Email);
             throw new UnauthorizedAppException("Şifre hatalı.");
         }
+
+        await _userRepository.UpdateAsync(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var tokens = _tokenService.CreateToken(user);
 

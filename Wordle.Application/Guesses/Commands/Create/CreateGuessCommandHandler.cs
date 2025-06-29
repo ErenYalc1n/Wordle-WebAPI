@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using Wordle.Application.Common.Exceptions;
+using Wordle.Application.Common.Interfaces;
 using Wordle.Application.DTOs;
 using Wordle.Domain.Common;
 using Wordle.Domain.DailyWords;

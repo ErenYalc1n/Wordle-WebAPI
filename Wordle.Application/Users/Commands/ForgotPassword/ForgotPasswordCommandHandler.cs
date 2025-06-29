@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
 using Wordle.Domain.Common;
-using Wordle.Domain.Users;
 
 namespace Wordle.Application.Users.Commands.ForgotPassword;
 
@@ -41,8 +40,16 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
         await _userRepository.UpdateAsync(user);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        var body = $"Şifre sıfırlama kodunuz: {user.PasswordResetCode}";
-        await _emailService.SendEmailAsync(user.Email, "Şifre Sıfırlama", body);
+        try
+        {
+            var body = $"Şifre sıfırlama kodunuz: {user.PasswordResetCode}";
+            await _emailService.SendEmailAsync(user.Email, "Şifre Sıfırlama", body);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Şifre sıfırlama maili gönderilemedi. UserId: {UserId}", user.Id);
+        }
+
 
         _logger.LogInformation("ForgotPassword: Şifre sıfırlama kodu gönderildi. UserId: {UserId}, Email: {Email}", user.Id, user.Email);
 

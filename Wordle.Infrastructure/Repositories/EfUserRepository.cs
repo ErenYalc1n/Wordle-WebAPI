@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Wordle.Application.Common.Interfaces;
 using Wordle.Domain.Users;
 using Wordle.Infrastructure.Data;
 

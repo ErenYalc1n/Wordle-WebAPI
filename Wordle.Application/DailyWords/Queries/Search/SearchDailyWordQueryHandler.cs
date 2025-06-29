@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MediatR;
 using Wordle.Application.Common.Exceptions;
+using Wordle.Application.Common.Interfaces;
 using Wordle.Application.DailyWords.DTOs;
 using Wordle.Domain.DailyWords;
 
