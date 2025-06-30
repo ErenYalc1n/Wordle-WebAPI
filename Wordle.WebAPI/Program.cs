@@ -76,6 +76,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<IGuessRepository, EFGuessRepository>();
 builder.Services.AddScoped<IUnitOfWork, EfUnitOfWork>();
+builder.Services.AddScoped<IScoreRepository, EfScoreRepository>();
 
 
 builder.Services.AddEndpointsApiExplorer();

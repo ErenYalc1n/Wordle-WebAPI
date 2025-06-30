@@ -8,6 +8,9 @@ public class GuessResponseDto
 
     public int CurrentAttempt { get; set; }
     public int RemainingAttempts { get; set; }
+
+    public bool IsCorrect { get; set; } 
+    public List<PreviousGuessDto> PreviousGuesses { get; set; } = new();
 }
 
 public class LetterResult

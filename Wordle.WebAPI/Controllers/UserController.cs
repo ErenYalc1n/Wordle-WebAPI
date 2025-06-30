@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Wordle.Application.Common.Interfaces;
 using Wordle.Application.Mail;
+using Wordle.Application.Scores.DTOs;
+using Wordle.Application.Scores.Queries.Leaderboard;
 using Wordle.Application.Users.Commands.ChangePassword;
 using Wordle.Application.Users.Commands.Delete;
 using Wordle.Application.Users.Commands.Login;
@@ -109,6 +111,14 @@ namespace Wordle.WebAPI.Controllers
             var result = await _mediator.Send(command);
             return Ok(result);
         }
+
+        [HttpGet("myscore")]
+        public async Task<ActionResult<MyScoreDto>> GetMyScore()
+        {
+            var result = await _mediator.Send(new GetMyScoreQuery());
+            return Ok(result);
+        }
+
 
     }
 }

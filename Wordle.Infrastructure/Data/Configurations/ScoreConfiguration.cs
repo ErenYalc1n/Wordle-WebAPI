@@ -15,7 +15,7 @@ public class ScoreConfiguration : IEntityTypeConfiguration<Score>
                 v => DateOnly.FromDateTime(v))
             .IsRequired();
 
-        builder.Property(s => s.Points)
+        builder.Property(s => s.Point)
             .IsRequired();
 
         builder.HasIndex(s => new { s.UserId, s.DailyWordId })

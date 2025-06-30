@@ -42,4 +42,12 @@ public class EFGuessRepository : IGuessRepository
                 g.GuessText.ToLower() == normalized,
                 cancellationToken);
     }
+    public Task<List<Guess>> GetGuessesForUserAndWordAsync(Guid userId, Guid dailyWordId, CancellationToken cancellationToken = default)
+    {
+        return _context.Guesses
+            .Where(g => g.UserId == userId && g.DailyWordId == dailyWordId)
+            .OrderBy(g => g.GuessedAt)
+            .ToListAsync(cancellationToken);
+    }
+
 }

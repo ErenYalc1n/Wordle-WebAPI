@@ -5,7 +5,6 @@ using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
 using Wordle.Application.DTOs;
 using Wordle.Domain.Common;
-using Wordle.Domain.DailyWords;
 using Wordle.Domain.Guesses;
 
 namespace Wordle.Application.Guesses.Commands.Create;
@@ -15,17 +14,20 @@ public class CreateGuessCommandHandler : IRequestHandler<CreateGuessCommand, Gue
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IGuessRepository _guessRepository;
     private readonly IDailyWordRepository _dailyWordRepository;
+    private readonly IScoreRepository _scoreRepository;
     private readonly IUnitOfWork _unitOfWork;
 
     public CreateGuessCommandHandler(
         IHttpContextAccessor httpContextAccessor,
         IGuessRepository guessRepository,
         IDailyWordRepository dailyWordRepository,
+        IScoreRepository scoreRepository,
         IUnitOfWork unitOfWork)
     {
         _httpContextAccessor = httpContextAccessor;
         _guessRepository = guessRepository;
         _dailyWordRepository = dailyWordRepository;
+        _scoreRepository = scoreRepository;
         _unitOfWork = unitOfWork;
     }
 
@@ -100,7 +102,64 @@ public class CreateGuessCommandHandler : IRequestHandler<CreateGuessCommand, Gue
         };
 
         await _guessRepository.AddAsync(guess, cancellationToken);
+
+        if (guess.IsCorrect)
+        {
+            var scoreExists = await _scoreRepository.ExistsForUserAndWordAsync(userId, dailyWord.Id);
+            if (!scoreExists)
+            {
+                var scorePoint = guessCount switch
+                {
+                    0 => 10,
+                    1 => 5,
+                    2 => 4,
+                    3 => 3,
+                    4 => 2,
+                    _ => 0
+                };
+
+                var score = new Score
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = userId,
+                    DailyWordId = dailyWord.Id,
+                    Date = today,
+                    Point = scorePoint
+                };
+
+                await _scoreRepository.AddAsync(score);
+            }
+        }
+        else if (guessCount == 4)
+        {
+            var scoreExists = await _scoreRepository.ExistsForUserAndWordAsync(userId, dailyWord.Id);
+            if (!scoreExists)
+            {
+                var score = new Score
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = userId,
+                    DailyWordId = dailyWord.Id,
+                    Date = today,
+                    Point = 0
+                };
+
+                await _scoreRepository.AddAsync(score);
+            }
+        }
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        var previousGuesses = await _guessRepository
+            .GetGuessesForUserAndWordAsync(userId, dailyWord.Id, cancellationToken);
+
+        var previousGuessDtos = previousGuesses
+            .OrderBy(g => g.GuessedAt)
+            .Select(g => new PreviousGuessDto
+            {
+                GuessText = g.GuessText,
+                GuessedAt = g.GuessedAt
+            }).ToList();
 
         return new GuessResponseDto
         {
@@ -108,7 +167,9 @@ public class CreateGuessCommandHandler : IRequestHandler<CreateGuessCommand, Gue
             GuessText = guess.GuessText,
             LetterResults = result,
             CurrentAttempt = guessCount + 1,
-            RemainingAttempts = 5 - (guessCount + 1)
+            RemainingAttempts = 5 - (guessCount + 1),
+            IsCorrect = guess.IsCorrect,
+            PreviousGuesses = previousGuessDtos
         };
     }
 }

@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wordle.Application.Guesses.Commands.Create;
+using Wordle.Application.Scores.DTOs;
+using Wordle.Application.Scores.Queries.Leaderboard;
+using Wordle.Domain.Common.Enums;
 
 namespace Wordle.WebAPI.Controllers;
 
@@ -24,5 +27,14 @@ public class GuessesController : ControllerBase
         var result = await _mediator.Send(command);
         return Ok(result);
     }
+
+    [AllowAnonymous]
+    [HttpGet("leaderboard")]
+    public async Task<ActionResult<LeaderboardResponseDto>> GetLeaderboard([FromQuery] LeaderboardRange range)
+    {
+        var result = await _mediator.Send(new LeaderboardQuery { Range = range });
+        return Ok(result);
+    }
+
 
 }
