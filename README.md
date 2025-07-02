@@ -20,15 +20,15 @@ WebAPI: Giriş noktası, Controller’lar ve servis konfigürasyonları
 Proje, SOLID prensipleri, dependency injection, custom exception handling, ve unit of work pattern gibi modern yaklaşımlar ile desteklenmiştir.
 
   *Kullanılan Teknolojiler
-ASP.NET Core 9 Web API
-Entity Framework Core 9 (SQL Server)
-MediatR (CQRS + Vertical Slice Pattern)
-FluentValidation
-AutoMapper
-JWT Authentication + Refresh Token
-BCrypt.Net
-Serilog (MSSQL Sink ile)
-Swashbuckle / Swagger
+ASP.NET Core 9 Web API,
+Entity Framework Core 9 (SQL Server),
+MediatR (CQRS + Vertical Slice Pattern),
+FluentValidation,
+AutoMapper,
+JWT Authentication + Refresh Token,
+BCrypt.Net,
+Serilog (MSSQL Sink ile),
+Swashbuckle / Swagger,
 AspNetCoreRateLimit
 
 -ReadMe Eng
@@ -52,13 +52,13 @@ WebAPI: Entry point, controllers, and configuration
 The project also embraces modern practices such as SOLID principles, dependency injection, custom exception handling, and the unit of work pattern, ensuring a robust and scalable backend architecture.
 
   *Technologies Used
-ASP.NET Core 9 Web API
-Entity Framework Core 9 (SQL Server)
-MediatR (CQRS + Vertical Slice Pattern)
-FluentValidation
+ASP.NET Core 9 Web API,
+Entity Framework Core 9 (SQL Server),
+MediatR (CQRS + Vertical Slice Pattern),
+FluentValidation,
 AutoMapper
-JWT Authentication + Refresh Token
-BCrypt.Net
-Serilog (With MSSQL Sink)
-Swashbuckle / Swagger
-AspNetCoreRateLimit
+JWT Authentication + Refresh Token,
+BCrypt.Net,
+Serilog (With MSSQL Sink),
+Swashbuckle / Swagger,
+AspNetCoreRateLimit,
