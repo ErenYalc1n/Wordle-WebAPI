@@ -67,5 +67,11 @@ namespace Wordle.Infrastructure.Repositories
             _context.Users.Remove(user);
             return Task.CompletedTask;
         }
+        public async Task<bool> IsNicknameTakenAsync(string nickname, CancellationToken cancellationToken = default)
+        {
+            return await _context.Users
+                .AnyAsync(u => u.Nickname.ToLower() == nickname.ToLower(), cancellationToken);
+        }
+
     }
 }

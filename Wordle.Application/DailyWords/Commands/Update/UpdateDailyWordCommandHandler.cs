@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
 using Wordle.Domain.Common;
 using Wordle.Domain.DailyWords;
@@ -23,17 +24,17 @@ public class UpdateDailyWordCommandHandler : IRequestHandler<UpdateDailyWordComm
 
         var existing = await _repository.GetTodayWordAsync(request.DailyWord.OldDate);
         if (existing is null)
-            throw new InvalidOperationException("Güncellenecek kelime bulunamadı.");
+            throw new NotFoundException("Güncellenecek kelime bulunamadı.");
 
         var now = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(3));
         if (request.DailyWord.OldDate <= now)
-            throw new InvalidOperationException("Geçmiş veya bugünkü kelimeler güncellenemez.");
+            throw new BusinessRuleException("Geçmiş veya bugünkü kelimeler güncellenemez.");
 
         if (request.DailyWord.OldDate != request.DailyWord.NewDate)
         {
             var isDateTaken = await _repository.IsDateTakenAsync(newDate);
             if (isDateTaken)
-                throw new InvalidOperationException("Yeni tarih zaten başka bir kelime tarafından kullanılıyor.");
+                throw new ConflictException("Yeni tarih zaten başka bir kelime tarafından kullanılıyor.");
         }
 
         existing.Word = request.DailyWord.Word;

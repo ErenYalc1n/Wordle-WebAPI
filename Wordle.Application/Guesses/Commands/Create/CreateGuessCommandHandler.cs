@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
@@ -16,41 +17,59 @@ public class CreateGuessCommandHandler : IRequestHandler<CreateGuessCommand, Gue
     private readonly IDailyWordRepository _dailyWordRepository;
     private readonly IScoreRepository _scoreRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<CreateGuessCommandHandler> _logger;
 
     public CreateGuessCommandHandler(
         IHttpContextAccessor httpContextAccessor,
         IGuessRepository guessRepository,
         IDailyWordRepository dailyWordRepository,
         IScoreRepository scoreRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ILogger<CreateGuessCommandHandler> logger)
     {
         _httpContextAccessor = httpContextAccessor;
         _guessRepository = guessRepository;
         _dailyWordRepository = dailyWordRepository;
         _scoreRepository = scoreRepository;
         _unitOfWork = unitOfWork;
+        _logger = logger;
     }
 
     public async Task<GuessResponseDto> Handle(CreateGuessCommand request, CancellationToken cancellationToken)
     {
         var userIdStr = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrWhiteSpace(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
-            throw new UnauthorizedAccessException("Kullanıcı kimliği doğrulanamadı.");
+        {
+            _logger.LogWarning("Guess: Kullanıcı kimliği doğrulanamadı.");
+            throw new UnauthorizedAppException("Kullanıcı kimliği doğrulanamadı.");
+        }
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var dailyWord = await _dailyWordRepository.GetByDateAsync(today);
         if (dailyWord is null)
+        {
+            _logger.LogWarning("Guess: Bugünün kelimesi bulunamadı.");
             throw new NotFoundException("Bugünün kelimesi henüz belirlenmemiş.");
+        }
 
         if (await _guessRepository.HasCorrectGuessAsync(userId, dailyWord.Id, cancellationToken))
+        {
+            _logger.LogWarning("Guess: Kullanıcı zaten doğru tahmin yaptı. UserId: {UserId}", userId);
             throw new ConflictException("Zaten doğru tahmin yaptınız.");
+        }
 
         var guessCount = await _guessRepository.GetGuessCountAsync(userId, dailyWord.Id, cancellationToken);
         if (guessCount >= 5)
+        {
+            _logger.LogWarning("Guess: Tahmin hakkı doldu. UserId: {UserId}", userId);
             throw new ConflictException("Tahmin hakkınız doldu.");
+        }
 
         if (await _guessRepository.IsDuplicateGuessAsync(userId, dailyWord.Id, request.GuessText, cancellationToken))
+        {
+            _logger.LogWarning("Guess: Kullanıcı aynı tahmini tekrar gönderdi. UserId: {UserId}, Text: {GuessText}", userId, request.GuessText);
             throw new ConflictException("Aynı tahmini tekrar gönderemezsiniz.");
+        }
 
         var normalizedGuess = request.GuessText.ToLowerInvariant();
         var normalizedTarget = dailyWord.Word.ToLowerInvariant();
@@ -128,6 +147,7 @@ public class CreateGuessCommandHandler : IRequestHandler<CreateGuessCommand, Gue
                 };
 
                 await _scoreRepository.AddAsync(score);
+                _logger.LogInformation("Guess: Doğru tahmin sonrası skor eklendi. UserId: {UserId}, Puan: {Point}", userId, scorePoint);
             }
         }
         else if (guessCount == 4)
@@ -145,6 +165,7 @@ public class CreateGuessCommandHandler : IRequestHandler<CreateGuessCommand, Gue
                 };
 
                 await _scoreRepository.AddAsync(score);
+                _logger.LogInformation("Guess: Tahminler başarısız oldu, sıfır puan eklendi. UserId: {UserId}", userId);
             }
         }
 

@@ -44,6 +44,16 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand>
             throw new UnauthorizedAppException("Kullanıcı bulunamadı.");
         }
 
+        if (!string.Equals(user.Nickname, request.Nickname, StringComparison.OrdinalIgnoreCase))
+        {
+            var nicknameTaken = await _userRepository.IsNicknameTakenAsync(request.Nickname);
+            if (nicknameTaken)
+            {
+                _logger.LogWarning("UpdateUser: Nickname zaten kullanımda. UserId: {UserId}, Nickname: {Nickname}", userId, request.Nickname);
+                throw new ConflictException("Bu kullanıcı adı zaten kullanımda.");
+            }
+        }
+
         user.Nickname = request.Nickname;
         user.FirstName = request.FirstName;
         user.LastName = request.LastName;

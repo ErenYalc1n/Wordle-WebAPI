@@ -2,9 +2,9 @@
 
 namespace Wordle.Application.Common.Exceptions;
 
-public class ValidationAppException : Exception
+public class BusinessRuleException : Exception
 {
-    public ValidationAppException(string message) : base(message) { }
+    public BusinessRuleException(string message) : base(message) { }
 
     public virtual HttpStatusCode StatusCode => HttpStatusCode.BadRequest;
 }

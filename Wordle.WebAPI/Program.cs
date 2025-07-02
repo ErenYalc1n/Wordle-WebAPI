@@ -78,7 +78,6 @@ builder.Services.AddScoped<IGuessRepository, EFGuessRepository>();
 builder.Services.AddScoped<IUnitOfWork, EfUnitOfWork>();
 builder.Services.AddScoped<IScoreRepository, EfScoreRepository>();
 
-
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddHttpContextAccessor();

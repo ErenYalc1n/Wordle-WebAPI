@@ -55,7 +55,6 @@ public class EfDailyWordRepository : IDailyWordRepository
         if (word is not null)
         {
             _context.DailyWords.Remove(word);
-           
         }
     }
 
@@ -101,18 +100,19 @@ public class EfDailyWordRepository : IDailyWordRepository
             .CountAsync(w => w.Date < today);
     }
 
-    public async Task DeleteByDateAsync(DateOnly date)
+    public async Task<bool> DeleteByDateAsync(DateOnly date)
     {
         var word = await _context.DailyWords
             .FirstOrDefaultAsync(w => w.Date == date.ToDateTime(TimeOnly.MinValue));
 
         if (word is null)
-            throw new NotFoundException("Bu tarihte planlı bir kelime bulunamadı.");
+            return false;
 
         if (word.Date <= DateTime.UtcNow.AddHours(3).Date)
-            throw new InvalidOperationException("Geçmiş veya bugünkü kelime silinemez.");
+            throw new BusinessRuleException("Geçmiş veya bugünkü kelime silinemez.");
 
         _context.DailyWords.Remove(word);
+        return true;
     }
 
     public async Task<DailyWord?> GetByDateAsync(DateOnly date)

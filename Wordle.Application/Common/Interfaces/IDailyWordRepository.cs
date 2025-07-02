@@ -12,7 +12,7 @@ public interface IDailyWordRepository
     Task UpdateAsync(DailyWord updatedWord);
     Task<int> CountPlannedAsync();
     Task<int> CountPastAsync();
-    Task DeleteByDateAsync(DateOnly date);
+    Task<bool> DeleteByDateAsync(DateOnly date);
     Task<DailyWord?> GetByDateAsync(DateOnly date);
     Task<DailyWord?> GetByWordAsync(string word);
 

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
+using Wordle.Application.Users.Commands.VerifyEmail;
 using Wordle.Application.Users.DTOs;
 using Wordle.Domain.Common;
 using Wordle.Domain.Users;
@@ -65,6 +66,9 @@ public class VerifyEmailCommandHandler : IRequestHandler<VerifyEmailCommand, Aut
         var tokens = _tokenService.CreateToken(user);
         user.RefreshToken = tokens.RefreshToken;
         user.RefreshTokenExpiresAt = tokens.RefreshTokenExpiresAt;
+
+        await _userRepository.UpdateAsync(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("VerifyEmail: E-posta başarıyla doğrulandı. UserId: {UserId}, Email: {Email}", user.Id, user.Email);
 

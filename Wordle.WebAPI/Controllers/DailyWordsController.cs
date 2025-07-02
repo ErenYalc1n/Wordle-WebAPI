@@ -13,7 +13,7 @@ using Wordle.Domain.DailyWords;
 
 namespace Wordle.WebAPI.Controllers;
 
-//[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin")]
 [Route("api/[controller]")]
 [ApiController]
 public class DailyWordsController : ControllerBase

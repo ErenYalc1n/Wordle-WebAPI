@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Wordle.Application.Common.Interfaces;
-using Wordle.Application.Mail;
 using Wordle.Application.Scores.DTOs;
 using Wordle.Application.Scores.Queries.Leaderboard;
 using Wordle.Application.Users.Commands.ChangePassword;
@@ -15,7 +13,6 @@ using Wordle.Application.Users.Commands.Register;
 using Wordle.Application.Users.Commands.ResetPassword;
 using Wordle.Application.Users.Commands.Update;
 using Wordle.Application.Users.Queries.GetCurrentUser;
-using Wordle.Infrastructure.Mail;
 
 namespace Wordle.WebAPI.Controllers
 {
@@ -112,6 +109,7 @@ namespace Wordle.WebAPI.Controllers
             return Ok(result);
         }
 
+        [Authorize]
         [HttpGet("myscore")]
         public async Task<ActionResult<MyScoreDto>> GetMyScore()
         {

@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Wordle.Application.Common.Exceptions;
 using Wordle.Application.Common.Interfaces;
 using Wordle.Domain.Common;
 using Wordle.Domain.DailyWords;
@@ -22,7 +23,7 @@ public class AddDailyWordCommandHandler : IRequestHandler<AddDailyWordCommand, G
 
         var isTaken = await _repository.IsDateTakenAsync(date);
         if (isTaken)
-            throw new InvalidOperationException("Bu tarihe ait bir kelime zaten var.");
+            throw new ConflictException("Bu tarihe ait bir kelime zaten var.");
 
         var word = new DailyWord
         {
