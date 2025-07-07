@@ -62,3 +62,4 @@ BCrypt.Net,
 Serilog (With MSSQL Sink),
 Swashbuckle / Swagger,
 AspNetCoreRateLimit
+
